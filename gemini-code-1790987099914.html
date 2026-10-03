@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="ru" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RMRP Admin helper by Kras</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        rmrp: {
+                            red: '#e53e3e',
+                            darkRed: '#9b2c2c',
+                            accent: '#3182ce',
+                            darkBg: '#0f172a',
+                            darkCard: '#1e293b',
+                            darkBorder: '#334155'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #334155;
+        }
+        .highlight {
+            background-color: rgba(234, 179, 8, 0.4);
+            color: inherit;
+            padding: 0 2px;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="sticky top-0 z-40 backdrop-blur-md bg-white/80 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-800 transition-colors">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <!-- Logo & Title -->
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="resetFilters()">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-red-600 to-red-500 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-red-500/30">
+                    K
+                </div>
+                <div>
+                    <h1 class="font-bold text-base sm:text-lg leading-tight tracking-wide">RMRP <span class="text-red-600 dark:text-red-500">Admin helper</span> <span class="text-xs bg-red-600/10 text-red-500 px-2 py-0.5 rounded border border-red-500/20">by Kras</span></h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Закрытая база знаний администрации</p>
+                </div>
+            </div>
+
+            <!-- Quick Navigation & Auth Actions -->
+            <div class="flex items-center space-x-2 sm:space-x-4">
+                <!-- Navigation -->
+                <nav id="mainNav" class="hidden md:flex items-center space-x-1 text-sm font-medium">
+                    <button onclick="scrollToSection('commands')" class="px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition">Команды</button>
+                    <button onclick="scrollToSection('terms')" class="px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition">Термины</button>
+                    <button onclick="scrollToSection('reports')" class="px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition">Ответы</button>
+                    <button onclick="scrollToSection('rules')" class="px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition">Регламент</button>
+                </nav>
+
+                <div class="h-6 w-px bg-slate-200 dark:bg-slate-800 hidden md:block"></div>
+
+                <!-- Admin Action Button -->
+                <button id="adminPanelBtn" onclick="toggleAdminPanel()" class="hidden px-3 py-1.5 rounded-xl bg-red-600 text-white text-xs font-semibold hover:bg-red-700 transition flex items-center space-x-1.5 shadow-md shadow-red-600/20">
+                    <i class="fas fa-user-shield"></i>
+                    <span>Панель Краса</span>
+                </button>
+
+                <!-- Auth / Logout Button -->
+                <div id="authContainer">
+                    <button id="loginBtn" onclick="openAuthModal()" class="px-4 py-2 rounded-xl bg-red-600 text-white text-xs font-bold hover:bg-red-700 transition shadow-md shadow-red-600/20">
+                        Войти
+                    </button>
+                    <div id="userInfo" class="hidden flex items-center space-x-2">
+                        <span id="userBadge" class="text-xs px-2 py-1 rounded bg-slate-200 dark:bg-slate-800 font-mono font-medium"></span>
+                        <button onclick="logout()" class="p-2 text-slate-400 hover:text-red-500 rounded-lg transition" title="Выйти">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Theme Switcher -->
+                <button id="themeToggle" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition" title="Переключить тему">
+                    <i id="themeIcon" class="fas fa-moon text-lg"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- LOCKED ACCESS SCREEN -->
+    <div id="authLockScreen" class="flex-grow flex items-center justify-center p-6">
+        <div class="max-w-md w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 text-center shadow-2xl">
+            <div class="w-16 h-16 bg-red-500/10 text-red-500 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-red-500/20 text-2xl">
+                <i class="fas fa-lock"></i>
+            </div>
+            <h2 class="text-2xl font-bold mb-2">Доступ Ограничен</h2>
+            <p class="text-slate-500 dark:text-slate-400 text-sm mb-6">База данных и поиск **RMRP Admin helper by Kras** доступны только авторизованным сотрудникам администрации.</p>
+            <button onclick="openAuthModal()" class="w-full py-3.5 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-bold text-sm transition shadow-lg shadow-red-600/30 flex items-center justify-center space-x-2">
+                <i class="fas fa-key"></i>
+                <span>Авторизоваться в системе</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- MAIN DATABASE CONTENT -->
+    <main id="mainContent" class="hidden flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Search Hero Section -->
+        <section class="mb-10 text-center max-w-3xl mx-auto">
+            <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-red-100 dark:bg-red-950/50 text-red-600 dark:text-red-400 text-xs font-semibold mb-4 border border-red-200 dark:border-red-900/50">
+                <i class="fas fa-shield-alt"></i>
+                <span>Система Поиска — RMRP Admin helper by Kras</span>
+            </div>
+            <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight mb-4">Мгновенная база данных администрации</h2>
+            
+            <!-- Search Bar -->
+            <div class="relative mt-6 max-w-2xl mx-auto">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+                    <i class="fas fa-search text-xl"></i>
+                </div>
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    placeholder="Поиск по командам, наказаниям, регламенту..." 
+                    class="w-full pl-12 pr-12 py-4 rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 focus:border-red-500 dark:focus:border-red-500 focus:outline-none shadow-xl shadow-slate-200/50 dark:shadow-none text-base sm:text-lg transition-all"
+                    oninput="handleSearch()"
+                >
+                <div class="absolute inset-y-0 right-0 pr-3 flex items-center space-x-1">
+                    <button id="clearSearch" onclick="clearSearchInput()" class="hidden p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tags Filter -->
+            <div class="flex flex-wrap items-center justify-center gap-2 mt-6" id="categoryTags">
+                <button onclick="filterCategory('all')" class="cat-tag active px-4 py-1.5 rounded-xl text-sm font-medium bg-red-600 text-white shadow-md shadow-red-500/20 transition">Все</button>
+                <button onclick="filterCategory('commands')" class="cat-tag px-4 py-1.5 rounded-xl text-sm font-medium bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition">Команды</button>
+                <button onclick="filterCategory('terms')" class="cat-tag px-4 py-1.5 rounded-xl text-sm font-medium bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition">Термины и Правила</button>
+                <button onclick="filterCategory('reports')" class="cat-tag px-4 py-1.5 rounded-xl text-sm font-medium bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition">Ответы в репорт</button>
+                <button onclick="filterCategory('rules')" class="cat-tag px-4 py-1.5 rounded-xl text-sm font-medium bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition">Регламент</button>
+            </div>
+        </section>
+
+        <!-- ADMIN MANAGEMENT PANEL -->
+        <section id="adminControlSection" class="hidden mb-12 p-6 rounded-3xl bg-slate-100 dark:bg-slate-900 border border-red-500/30">
+            <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-200 dark:border-slate-800">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2.5 rounded-xl bg-red-600 text-white">
+                        <i class="fas fa-user-cog text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold">Панель Управления Создателя (Краса)</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Управление пользователями и добавление записей в БД</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Add New Item Form -->
+                <div class="bg-white dark:bg-slate-950 p-5 rounded-2xl border border-slate-200 dark:border-slate-800">
+                    <h4 class="font-bold mb-4 text-sm uppercase tracking-wider text-red-500"><i class="fas fa-plus-circle mr-2"></i>Добавить запись в БД</h4>
+                    <form onsubmit="handleAddItem(event)" class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-semibold mb-1">Раздел</label>
+                            <select id="newItemCategory" class="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:border-red-500">
+                                <option value="commands">Команды</option>
+                                <option value="terms">Термины и Наказания</option>
+                                <option value="reports">Ответы в репорт</option>
+                                <option value="rules">Регламент</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold mb-1">Заголовок / Команда</label>
+                            <input type="text" id="newItemTitle" required placeholder="Например: /jail [id] [время]" class="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:border-red-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold mb-1">Краткое описание / Бейдж</label>
+                            <input type="text" id="newItemBadge" placeholder="Например: Посадить в деморган или 60 мин" class="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:border-red-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold mb-1">Полная информация / Текст для копирования</label>
+                            <textarea id="newItemDetails" rows="3" placeholder="Подробное описание или заготовленный текст ответа..." class="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:border-red-500"></textarea>
+                        </div>
+                        <button type="submit" class="w-full py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs transition shadow-md shadow-red-600/20">
+                            Сохранить Запись
+                        </button>
+                    </form>
+                </div>
+
+                <!-- User Management List -->
+                <div class="bg-white dark:bg-slate-950 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
+                    <div>
+                        <h4 class="font-bold mb-4 text-sm uppercase tracking-wider text-red-500"><i class="fas fa-users-cog mr-2"></i>Зарегистрированные Аккаунты</h4>
+                        <div id="usersList" class="space-y-2 max-h-60 overflow-y-auto pr-1"></div>
+                    </div>
+                    <div class="mt-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-500">
+                        <i class="fas fa-info-circle mr-1"></i> Как главный админ, вы можете выдавать роль Администратора другим аккаунтам.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Content Container -->
+        <div id="contentContainer" class="space-y-12">
+            
+            <!-- SECTION 1: Commands -->
+            <section id="commandsSection" class="content-section">
+                <div class="flex items-center justify-between mb-6 border-b border-slate-200 dark:border-slate-800 pb-3">
+                    <div class="flex items-center space-x-3">
+                        <div class="p-2 rounded-lg bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400">
+                            <i class="fas fa-terminal text-xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold">Команды Администрации</h3>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="commandsGrid"></div>
+            </section>
+
+            <!-- SECTION 2: Terms and Punishments -->
+            <section id="termsSection" class="content-section">
+                <div class="flex items-center justify-between mb-6 border-b border-slate-200 dark:border-slate-800 pb-3">
+                    <div class="flex items-center space-x-3">
+                        <div class="p-2 rounded-lg bg-red-100 dark:bg-red-950 text-red-600 dark:text-red-400">
+                            <i class="fas fa-gavel text-xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold">Термины и Нормы Наказаний</h3>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="termsGrid"></div>
+            </section>
+
+            <!-- SECTION 3: Report Templates -->
+            <section id="reportsSection" class="content-section">
+                <div class="flex items-center justify-between mb-6 border-b border-slate-200 dark:border-slate-800 pb-3">
+                    <div class="flex items-center space-x-3">
+                        <div class="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400">
+                            <i class="fas fa-comment-dots text-xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold">Быстрые Ответы в Репорт</h3>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="reportsGrid"></div>
+            </section>
+
+            <!-- SECTION 4: Admin Regulations -->
+            <section id="rulesSection" class="content-section">
+                <div class="flex items-center justify-between mb-6 border-b border-slate-200 dark:border-slate-800 pb-3">
+                    <div class="flex items-center space-x-3">
+                        <div class="p-2 rounded-lg bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400">
+                            <i class="fas fa-book text-xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold">Регламент и Инструкции</h3>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="rulesGrid"></div>
+            </section>
+
+            <!-- Empty Database Message -->
+            <div id="noResults" class="hidden text-center py-16">
+                <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 text-2xl">
+                    <i class="fas fa-folder-open"></i>
+                </div>
+                <h4 class="text-lg font-semibold mb-1">База данных пуста или ничего не найдено</h4>
+                <p class="text-sm text-slate-500 dark:text-slate-400">Воспользуйтесь панелью администратора, чтобы добавить новые записи.</p>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- AUTH MODAL -->
+    <div id="authModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-sm w-full p-6 shadow-2xl relative">
+            <button onclick="closeAuthModal()" class="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                <i class="fas fa-times"></i>
+            </button>
+            <h3 id="authModalTitle" class="text-xl font-bold mb-4 text-center">Авторизация</h3>
+            <form onsubmit="handleAuthSubmit(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold mb-1">Логин / Email / Никнейм</label>
+                    <input type="text" id="authLogin" required placeholder="Ваш логин" class="w-full p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:border-red-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold mb-1">Пароль</label>
+                    <input type="password" id="authPassword" required placeholder="••••••••" class="w-full p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:border-red-500">
+                </div>
+                <button type="submit" class="w-full py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-sm transition shadow-lg shadow-red-600/30">
+                    Войти в аккаунт
+                </button>
+            </form>
+            <div class="mt-4 text-center">
+                <button onclick="toggleAuthMode()" id="authToggleBtn" class="text-xs text-slate-500 hover:text-red-500 transition">
+                    Нет аккаунта? Зарегистрироваться
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 flex items-center space-x-3 px-4 py-3 rounded-xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xl opacity-0 pointer-events-none transition-all duration-300 transform translate-y-2">
+        <i class="fas fa-check-circle text-emerald-500 text-lg"></i>
+        <span id="toastMessage" class="text-sm font-medium">Действие выполнено!</span>
+    </div>
+
+    <script>
+        // Data Structures
+        let database = JSON.parse(localStorage.getItem('rmrp_db')) || [];
+        
+        // Initial Users
+        let users = JSON.parse(localStorage.getItem('rmrp_users')) || [
+            { login: 'vkrass999@yandex.ru', password: 'Thebordguy3903', role: 'admin' },
+            { login: 'Kras', password: 'adminpassword', role: 'admin' }
+        ];
+        
+        let currentUser = JSON.parse(localStorage.getItem('rmrp_current_user')) || null;
+
+        // Force Admin Role for vkrass999@yandex.ru
+        if (currentUser && currentUser.login.toLowerCase() === 'vkrass999@yandex.ru') {
+            currentUser.role = 'admin';
+            localStorage.setItem('rmrp_current_user', JSON.stringify(currentUser));
+        }
+
+        // Ensure user list has admin role for vkrass999@yandex.ru
+        users = users.map(u => {
+            if (u.login.toLowerCase() === 'vkrass999@yandex.ru') {
+                u.role = 'admin';
+            }
+            return u;
+        });
+        localStorage.setItem('rmrp_users', JSON.stringify(users));
+
+        let currentCategory = 'all';
+        let searchQuery = '';
+        let isRegisterMode = false;
+
+        // Init Application
+        document.addEventListener('DOMContentLoaded', () => {
+            initTheme();
+            checkAuth();
+            renderAllData();
+        });
+
+        // Authentication System
+        function checkAuth() {
+            const lockScreen = document.getElementById('authLockScreen');
+            const mainContent = document.getElementById('mainContent');
+            const userInfo = document.getElementById('userInfo');
+            const loginBtn = document.getElementById('loginBtn');
+            const adminPanelBtn = document.getElementById('adminPanelBtn');
+
+            if (currentUser) {
+                lockScreen.classList.add('hidden');
+                mainContent.classList.remove('hidden');
+                loginBtn.classList.add('hidden');
+                userInfo.classList.remove('hidden');
+                document.getElementById('userBadge').innerText = `${currentUser.login} (${currentUser.role})`;
+
+                if (currentUser.role === 'admin') {
+                    adminPanelBtn.classList.remove('hidden');
+                    renderUsersList();
+                } else {
+                    adminPanelBtn.classList.add('hidden');
+                }
+            } else {
+                lockScreen.classList.remove('hidden');
+                mainContent.classList.add('hidden');
+                loginBtn.classList.remove('hidden');
+                userInfo.classList.add('hidden');
+                adminPanelBtn.classList.add('hidden');
+            }
+        }
+
+        function handleAuthSubmit(e) {
+            e.preventDefault();
+            const login = document.getElementById('authLogin').value.trim();
+            const password = document.getElementById('authPassword').value.trim();
+
+            if (isRegisterMode) {
+                if (users.find(u => u.login.toLowerCase() === login.toLowerCase())) {
+                    showToast('Пользователь с таким логином уже существует!');
+                    return;
+                }
+                const role = login.toLowerCase() === 'vkrass999@yandex.ru' ? 'admin' : 'user';
+                const newUser = { login, password, role };
+                users.push(newUser);
+                localStorage.setItem('rmrp_users', JSON.stringify(users));
+                currentUser = newUser;
+                localStorage.setItem('rmrp_current_user', JSON.stringify(currentUser));
+                showToast('Успешная регистрация!');
+            } else {
+                const user = users.find(u => u.login.toLowerCase() === login.toLowerCase() && u.password === password);
+                if (!user) {
+                    showToast('Неверный логин или пароль!');
+                    return;
+                }
+                if (user.login.toLowerCase() === 'vkrass999@yandex.ru') {
+                    user.role = 'admin';
+                }
+                currentUser = user;
+                localStorage.setItem('rmrp_current_user', JSON.stringify(currentUser));
+                showToast(`Добро пожаловать, ${currentUser.login}!`);
+            }
+
+            closeAuthModal();
+            checkAuth();
+            renderAllData();
+        }
+
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('rmrp_current_user');
+            checkAuth();
+            showToast('Вы вышли из системы');
+        }
+
+        function openAuthModal() {
+            document.getElementById('authModal').classList.remove('hidden');
+        }
+
+        function closeAuthModal() {
+            document.getElementById('authModal').classList.add('hidden');
+        }
+
+        function toggleAuthMode() {
+            isRegisterMode = !isRegisterMode;
+            document.getElementById('authModalTitle').innerText = isRegisterMode ? 'Регистрация' : 'Авторизация';
+            document.getElementById('authToggleBtn').innerText = isRegisterMode ? 'Уже есть аккаунт? Войти' : 'Нет аккаунта? Зарегистрироваться';
+        }
+
+        // Admin Functionalities
+        function toggleAdminPanel() {
+            const panel = document.getElementById('adminControlSection');
+            panel.classList.toggle('hidden');
+        }
+
+        function handleAddItem(e) {
+            e.preventDefault();
+            const category = document.getElementById('newItemCategory').value;
+            const title = document.getElementById('newItemTitle').value.trim();
+            const badge = document.getElementById('newItemBadge').value.trim();
+            const details = document.getElementById('newItemDetails').value.trim();
+
+            const newItem = {
+                id: 'item_' + Date.now(),
+                category,
+                title,
+                badge: badge || 'Информация',
+                desc: badge,
+                details: details || title
+            };
+
+            database.push(newItem);
+            localStorage.setItem('rmrp_db', JSON.stringify(database));
+            showToast('Запись успешно добавлена!');
+
+            document.getElementById('newItemTitle').value = '';
+            document.getElementById('newItemBadge').value = '';
+            document.getElementById('newItemDetails').value = '';
+
+            renderAllData();
+        }
+
+        function deleteItem(id) {
+            if (!confirm('Вы уверены, что хотите удалить эту запись?')) return;
+            database = database.filter(item => item.id !== id);
+            localStorage.setItem('rmrp_db', JSON.stringify(database));
+            showToast('Запись удалена');
+            renderAllData();
+        }
+
+        function renderUsersList() {
+            const container = document.getElementById('usersList');
+            container.innerHTML = users.map(user => `
+                <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs">
+                    <div>
+                        <span class="font-bold">${user.login}</span>
+                        <span class="ml-2 px-1.5 py-0.5 rounded ${user.role === 'admin' ? 'bg-red-500/10 text-red-500' : 'bg-slate-500/10 text-slate-500'} font-mono">${user.role}</span>
+                    </div>
+                    ${user.login.toLowerCase() !== 'vkrass999@yandex.ru' ? `
+                        <button onclick="toggleUserRole('${user.login}')" class="px-2 py-1 rounded bg-slate-200 dark:bg-slate-800 hover:bg-red-500 hover:text-white transition">
+                            ${user.role === 'admin' ? 'Снять админку' : 'Дать админку'}
+                        </button>
+                    ` : '<span class="text-slate-400 italic">Главный Админ</span>'}
+                </div>
+            `).join('');
+        }
+
+        function toggleUserRole(login) {
+            users = users.map(u => {
+                if (u.login === login) {
+                    u.role = u.role === 'admin' ? 'user' : 'admin';
+                }
+                return u;
+            });
+            localStorage.setItem('rmrp_users', JSON.stringify(users));
+            renderUsersList();
+            showToast('Права пользователя обновлены');
+        }
+
+        // Render Data
+        function renderAllData() {
+            if (!currentUser) return;
+
+            renderSection('commandsGrid', 'commands', renderCardTemplate);
+            renderSection('termsGrid', 'terms', renderCardTemplate);
+            renderSection('reportsGrid', 'reports', renderCardTemplate);
+            renderSection('rulesGrid', 'rules', renderCardTemplate);
+
+            updateCountsAndVisibility();
+        }
+
+        function renderSection(containerId, category, templateFn) {
+            const container = document.getElementById(containerId);
+            const filtered = database.filter(item => {
+                const matchesCat = currentCategory === 'all' || currentCategory === item.category;
+                const isThisCategory = item.category === category;
+                const matchesSearch = searchQuery === '' || 
+                    item.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                    item.details.toLowerCase().includes(searchQuery.toLowerCase());
+                return matchesCat && isThisCategory && matchesSearch;
+            });
+
+            container.innerHTML = filtered.map(item => templateFn(item)).join('');
+            
+            const parentSection = container.closest('.content-section');
+            if (filtered.length === 0) {
+                parentSection.classList.add('hidden');
+            } else {
+                parentSection.classList.remove('hidden');
+            }
+        }
+
+        function renderCardTemplate(item) {
+            const isAdmin = currentUser && currentUser.role === 'admin';
+            return `
+                <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-red-500/50 transition shadow-sm flex flex-col justify-between relative group">
+                    <div>
+                        <div class="flex items-start justify-between gap-2 mb-2">
+                            <h4 class="font-bold text-sm text-slate-900 dark:text-white font-mono">${highlightText(item.title)}</h4>
+                            <span class="text-[10px] font-semibold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/60 px-2 py-0.5 rounded border border-red-200 dark:border-red-900/40">
+                                ${item.badge}
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">${highlightText(item.details)}</p>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-between">
+                        <button onclick="copyToClipboard('${item.details}')" class="text-xs font-semibold text-red-500 hover:text-red-600 flex items-center space-x-1">
+                            <i class="far fa-copy"></i>
+                            <span>Копировать</span>
+                        </button>
+                        ${isAdmin ? `
+                            <button onclick="deleteItem('${item.id}')" class="text-xs text-slate-400 hover:text-red-500 transition" title="Удалить запись">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Search & Filters
+        function highlightText(text) {
+            if (!searchQuery) return text;
+            const regex = new RegExp(`(${escapeRegExp(searchQuery)})`, 'gi');
+            return text.replace(regex, '<mark class="highlight">$1</mark>');
+        }
+
+        function escapeRegExp(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        function handleSearch() {
+            searchQuery = document.getElementById('searchInput').value.trim();
+            document.getElementById('clearSearch').classList.toggle('hidden', searchQuery.length === 0);
+            renderAllData();
+        }
+
+        function clearSearchInput() {
+            document.getElementById('searchInput').value = '';
+            handleSearch();
+        }
+
+        function filterCategory(cat) {
+            currentCategory = cat;
+            renderAllData();
+        }
+
+        function resetFilters() {
+            filterCategory('all');
+            clearSearchInput();
+        }
+
+        function updateCountsAndVisibility() {
+            const visibleSections = document.querySelectorAll('.content-section:not(.hidden)');
+            document.getElementById('noResults').classList.toggle('hidden', visibleSections.length > 0);
+        }
+
+        // Helpers
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text);
+            showToast('Скопировано в буфер обмена!');
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMessage').innerText = msg;
+            toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-2');
+            setTimeout(() => toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-2'), 2500);
+        }
+
+        function initTheme() {
+            const themeToggleBtn = document.getElementById('themeToggle');
+            const themeIcon = document.getElementById('themeIcon');
+            const savedTheme = localStorage.getItem('rmrp_theme') || 'dark';
+
+            if (savedTheme === 'dark') {
+                document.documentElement.classList.add('dark');
+                themeIcon.className = 'fas fa-sun text-lg text-amber-400';
+            } else {
+                document.documentElement.classList.remove('dark');
+                themeIcon.className = 'fas fa-moon text-lg text-slate-600';
+            }
+
+            themeToggleBtn.addEventListener('click', () => {
+                const isDark = document.documentElement.classList.toggle('dark');
+                localStorage.setItem('rmrp_theme', isDark ? 'dark' : 'light');
+                themeIcon.className = isDark ? 'fas fa-sun text-lg text-amber-400' : 'fas fa-moon text-lg text-slate-600';
+            });
+        }
+
+        function scrollToSection(id) {
+            document.getElementById(id + 'Section')?.scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
